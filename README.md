@@ -7,6 +7,7 @@
 				N9005XXUGBOJ1 SM-N9005_EUR_LL_Opensource.zip         19 November 2015 <<<<<<<<<<<<<
 				
 ### How to compile:
-				cd N9005XXUGBOJ1/linux_kernel
+				git clone https://github.com/maroviher/N9005
+				cd N9005/N9005XXUGBOJ1/linux_kernel
 				./build_kernel.sh
 				flashable is in /home/ahmed/my_git/N9005/N9005XXUGBOJ1/linux_kernel/boot_image
