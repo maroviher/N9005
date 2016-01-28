@@ -11,3 +11,11 @@
 				cd N9005/N9005XXUGBOJ1/linux_kernel
 				./build_kernel.sh
 				flashable is in /home/ahmed/my_git/N9005/N9005XXUGBOJ1/linux_kernel/boot_image
+
+### Setting up NFS4 client on Note 3:
+	On Server:
+		echo 262144 > /proc/fs/nfsd/max_block_size
+		systemctl start nfs-server
+	In N9005:
+		su -mm
+		mount.nfs4 192.168.222.1:/ /storage/UsbDriveA -o vers=4,nolock,rsize=262144,wsize=262144
