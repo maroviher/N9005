@@ -11,6 +11,7 @@
 				cd N9005/N9005XXUGBOJ1/linux_kernel
 				./build_kernel.sh
 				flashable is in /home/ahmed/my_git/N9005/N9005XXUGBOJ1/linux_kernel/boot_image
+				WiFi not working. To fix: modify build.prop ro.securestorage.support=true - Change to false. WiFi works on reboot
 
 ### Setting up NFS4 client on Note 3:
 	On Server:
