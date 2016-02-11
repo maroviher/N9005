@@ -1,3 +1,8 @@
+### Lollipop Kernel for N9005 (Note 3) based on N9005XXUGBOJ1 with Quallcomm SoC
+		Changes:
+		* SELinux possible set to permissive
+		* CONFIG_DEBUG_USER=n (annoying illegal instruction messages in dmesg)
+
 ### Original source code: http://opensource.samsung.com/reception/receptionSub.do?method=sub&sub=F&searchValue=n9005
 		Versions:
 
