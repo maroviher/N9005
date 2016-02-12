@@ -15,7 +15,6 @@ tools/mkbootimg --tags_offset 0x01e00000 --ramdisk_offset 0x02000000 --kernel ou
 			--ramdisk boot_image/boot.img-ramdisk.gz \
 			--cmdline 'console=null androidboot.hardware=qcom user_debug=23 msm_rtb.filter=0x37 ehci-hcd.park=3' \
 			--base 0x00000000 --pagesize 2048 --dt output/arch/arm/boot/ffffff.dtb -o boot_image/boot.img
-cd boot_image
-tar cf "`date +"%H_%M_%S__%_d-%m-%Y"`.tar" boot.img && rm boot.img
-cd -
+
+tar cf boot_image/"`date +"%H_%M_%S__%_d-%m-%Y"`.tar" -C boot_image/ boot.img && rm boot_image/boot.img
 #cp output/arch/arm/boot/Image $(pwd)/arch/arm/boot/zImage
