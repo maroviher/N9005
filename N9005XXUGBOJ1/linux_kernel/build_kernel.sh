@@ -7,7 +7,7 @@ mkdir output
 BUILD_JOB_NUMBER=`grep processor /proc/cpuinfo|wc -l`
 
 make -C $(pwd) O=output VARIANT_DEFCONFIG=msm8974_sec_hlte_eur_defconfig \
-			msm8974_sec_defconfig SELINUX_DEFCONFIG=selinux_defconfig || exit -1
+			ahmed_msm8974_sec_defconfig SELINUX_DEFCONFIG=selinux_defconfig || exit -1
 make -C $(pwd) O=output -j$BUILD_JOB_NUMBER || exit -1
 
 tools/dtbTool -p output/scripts/dtc/ -s 2048 -o output/arch/arm/boot/ffffff.dtb output/arch/arm/boot/
