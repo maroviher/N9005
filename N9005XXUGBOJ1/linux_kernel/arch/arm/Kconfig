@@ -224,7 +224,9 @@ config VECTORS_BASE
 	help
 	  The base address of exception vectors.  This must be two pages
 	  in size.
-
+	
+source "ahmed/Kconfig"
+	
 config ARM_PATCH_PHYS_VIRT
 	bool "Patch physical to virtual translations at runtime" if EMBEDDED
 	default y
