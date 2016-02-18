@@ -25,6 +25,8 @@
 #include <linux/qpnp/power-on.h>
 #ifdef CONFIG_SEC_DEBUG
 #include <mach/sec_debug.h>
+#else
+#include <linux/sec_class.h>
 #endif
 
 #define PMIC_VER_8941           0x01
