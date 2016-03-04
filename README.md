@@ -7,7 +7,11 @@
 		* CONFIG_MSM_RTB
 		* CONFIG_SEC_PM_DEBUG
 		* CONFIG_DEBUG_INFO
-		* printk function do nothing 
+		* printk configurable (default off)
+		* android logger
+		* CONFIG_SEC_MISC
+		* CONFIG_SEC_DEBUG
+		* CONFIG_SEC_DEBUG_SUBSYSCONFIG_SEC_DEBUG_SCHED_LOG
 
 ### Original source code: http://opensource.samsung.com/reception/receptionSub.do?method=sub&sub=F&searchValue=n9005
 		Versions:
@@ -24,14 +28,3 @@
 				./build_kernel.sh
 				#Odin flashable TAR is in the folder 'boot_image'
 				#WiFi will not work. To fix: modify build.prop ro.securestorage.support=true - Change to false and reboot
-
-
-
-
-### Setting up NFS4 client on Note 3:
-	On Server:
-		echo 262144 > /proc/fs/nfsd/max_block_size
-		systemctl start nfs-server
-	In N9005:
-		su -mm
-		mount.nfs4 192.168.222.1:/ /storage/UsbDriveA -o vers=4,nolock,rsize=262144,wsize=262144
