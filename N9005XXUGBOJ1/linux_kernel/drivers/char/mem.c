@@ -825,6 +825,7 @@ static const struct file_operations oldmem_fops = {
 static ssize_t kmsg_writev(struct kiocb *iocb, const struct iovec *iv,
 			   unsigned long count, loff_t pos)
 {
+#ifdef CONFIG_PRINTK
 	char *line, *p;
 	int i;
 	ssize_t ret = -EFAULT;
@@ -853,6 +854,9 @@ static ssize_t kmsg_writev(struct kiocb *iocb, const struct iovec *iv,
 out:
 	kfree(line);
 	return ret;
+#else
+	return 1;
+#endif
 }
 
 static const struct file_operations kmsg_fops = {
