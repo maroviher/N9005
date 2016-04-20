@@ -7,11 +7,12 @@
 		* CONFIG_MSM_RTB
 		* CONFIG_SEC_PM_DEBUG
 		* CONFIG_DEBUG_INFO
-		* printk configurable (default off)
+		* CONFIG_PRINTK
 		* android logger
 		* CONFIG_SEC_MISC
 		* CONFIG_SEC_DEBUG
-		* CONFIG_SEC_DEBUG_SUBSYSCONFIG_SEC_DEBUG_SCHED_LOG
+		* CONFIG_SEC_DEBUG_SUBSYS
+		* CONFIG_SEC_DEBUG_SCHED_LOG
 
 ### Original source code: http://opensource.samsung.com/reception/receptionSub.do?method=sub&sub=F&searchValue=n9005
 		Versions:

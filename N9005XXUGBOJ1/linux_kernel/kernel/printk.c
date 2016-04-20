@@ -972,7 +972,6 @@ static void call_console_drivers(unsigned start, unsigned end)
 	_call_console_drivers(start_print, end, msg_level);
 }
 
-#ifndef CONFIG_AHMED_NOPRINTK
 static void emit_log_char(char c)
 {
 	LOG_BUF(log_end) = c;
@@ -1009,7 +1008,6 @@ static void zap_locks(void)
 	/* And make sure that we print immediately */
 	sema_init(&console_sem, 1);
 }
-#endif
 
 #if defined(CONFIG_PRINTK_TIME)
 static bool printk_time = 1;
@@ -1057,7 +1055,6 @@ static int have_callable_console(void)
 
 asmlinkage int printk(const char *fmt, ...)
 {
-#ifndef CONFIG_AHMED_NOPRINTK
 	va_list args;
 	int r;
 #ifdef CONFIG_MSM_RTB
@@ -1079,9 +1076,6 @@ asmlinkage int printk(const char *fmt, ...)
 	va_end(args);
 
 	return r;
-#else
-	return 1;
-#endif
 }
 
 /* cpu currently holding logbuf_lock */
@@ -1099,7 +1093,7 @@ static inline int can_use_console(unsigned int cpu)
 {
 	return cpu_online(cpu) || have_callable_console();
 }
-#ifndef CONFIG_AHMED_NOPRINTK
+
 /*
  * Try to get console ownership to actually show the kernel
  * messages from a 'printk'. Return true (and with the
@@ -1141,7 +1135,6 @@ static const char recursion_bug_msg [] =
 static int recursion_bug;
 static int new_text_line = 1;
 static char printk_buf[1024];
-#endif
 
 int printk_delay_msec __read_mostly;
 
@@ -1159,9 +1152,6 @@ static inline void printk_delay(void)
 
 asmlinkage int vprintk(const char *fmt, va_list args)
 {
-#ifdef CONFIG_AHMED_NOPRINTK
-  return 1;
-#else
 	int printed_len = 0;
 	int current_log_level = default_message_loglevel;
 	unsigned long flags;
@@ -1314,7 +1304,6 @@ out_restore_irqs:
 	local_irq_restore(flags);
 
 	return printed_len;
-#endif
 }
 EXPORT_SYMBOL(printk);
 EXPORT_SYMBOL(vprintk);

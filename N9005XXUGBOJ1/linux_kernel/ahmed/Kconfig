@@ -1,7 +1,0 @@
-menu "Ahmed options"
-
-config AHMED_NOPRINTK
-	bool "Disable printk"
-	default n
-
-endmenu
