@@ -1,4 +1,4 @@
-### Ahmed kernel for N9005 (Note 3 Quallcomm SoC) based on Samsung stock N9005XXUGBOJ1(Lollipop)
+### Ahmed kernel for N9005 LTE (Note 3 Quallcomm SoC) based on Samsung stock N9005XXUGBOJ1(Lollipop)
 		Changes:
 		* SELinux possible set to permissive
 		
@@ -24,6 +24,8 @@
 		* CONFIG_SEC_DEBUG_IRQ_EXIT_LOG
 		* CONFIG_SEC_RESTRICT_ROOTING_LOG
 		* CONFIG_EXT2_FS is not set, CONFIG_EXT3_FS is not set, instead CONFIG_EXT4_USE_FOR_EXT23=y
+		* CONFIG_KALLSYMS
+		* CONFIG_ELF_CORE
 
 ### Original source code: http://opensource.samsung.com/reception/receptionSub.do?method=sub&sub=F&searchValue=n9005
 		Versions:
