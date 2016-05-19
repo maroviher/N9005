@@ -1,7 +1,8 @@
 #!/bin/bash
 
 export ARCH=arm
-export CROSS_COMPILE=/opt/toolchains/arm-eabi-4.7/bin/arm-eabi-
+#export CROSS_COMPILE=/opt/toolchains/arm-eabi-4.7/bin/arm-eabi-
+export CROSS_COMPILE=/opt/toolchains/arm-cortex_a15-linux-gnueabihf-linaro_4.9/bin/arm-cortex_a15-linux-gnueabihf-
 mkdir output
 
 BUILD_JOB_NUMBER=`grep processor /proc/cpuinfo|wc -l`
