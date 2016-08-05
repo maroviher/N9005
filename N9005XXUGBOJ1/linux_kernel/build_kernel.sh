@@ -17,7 +17,7 @@ tools/mkbootimg --tags_offset 0x01e00000 --ramdisk_offset 0x02000000 --kernel ou
 			--cmdline 'console=null androidboot.hardware=qcom user_debug=23 msm_rtb.filter=0x37 ehci-hcd.park=3' \
 			--base 0x00000000 --pagesize 2048 --dt output/arch/arm/boot/ffffff.dtb -o boot_image/boot.img
 cd boot_image/
-DATE_STR=`date +"%H_%M_%S__%_d-%m-%Y"`
+DATE_STR=`date +"%H_%M_%S__%d-%m-%Y"`
 cp zip_recovery.zip $DATE_STR.zip
 zip -u $DATE_STR.zip boot.img
 cd -
