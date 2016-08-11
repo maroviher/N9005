@@ -17,6 +17,10 @@
 #include <linux/host_notify.h>
 #endif
 
+#include <linux/proc_fs.h>
+#include <linux/seq_file.h>
+#include <linux/uaccess.h>
+
 #define ENABLE 1
 #define DISABLE 0
 
@@ -524,7 +528,7 @@ static void max77803_set_charge_current(struct max77803_charger_data *charger,
 			__func__, reg_data, cur);
 }
 
-/*
+
 static int max77803_get_charge_current(struct max77803_charger_data *charger)
 {
 	u8 reg_data;
@@ -540,7 +544,7 @@ static int max77803_get_charge_current(struct max77803_charger_data *charger)
 	pr_debug("%s: get charge current: %dmA\n", __func__, get_current);
 	return get_current;
 }
-*/
+
 
 /* in soft regulation, current recovery operation */
 static void max77803_recovery_work(struct work_struct *work)
@@ -943,6 +947,9 @@ static int sec_chg_set_property(struct power_supply *psy,
 				POWER_SUPPLY_TYPE_USB].input_current_limit;
 		} else {
 			charger->is_charging = true;
+			set_charging_current     = charger->charging_current;
+			set_charging_current_max = charger->charging_current_max;
+#if 0
 			charger->charging_current_max =
 					charger->pdata->charging_current
 					[charger->cable_type].input_current_limit;
@@ -971,6 +978,7 @@ static int sec_chg_set_property(struct power_supply *psy,
 				if (set_charging_current > SIOP_CHARGING_LIMIT_CURRENT)
 					set_charging_current = SIOP_CHARGING_LIMIT_CURRENT;
 			}
+#endif
 		}
 		max77803_set_charger_state(charger, charger->is_charging);
 		/* if battery full, only disable charging  */
@@ -1009,6 +1017,7 @@ static int sec_chg_set_property(struct power_supply *psy,
 				val->intval);
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+#if 0
 		charger->siop_level = val->intval;
 		if (charger->is_charging) {
 			/* decrease the charging current according to siop level */
@@ -1037,6 +1046,7 @@ static int sec_chg_set_property(struct power_supply *psy,
 
 			max77803_set_charge_current(charger, current_now);
 		}
+#endif
 		break;
 #if defined(CONFIG_SAMSUNG_BATTERY_ENG_TEST)
 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
@@ -1424,7 +1434,7 @@ static irqreturn_t max77803_bypass_irq(int irq, void *data)
 }
 
 static void max77803_chgin_isr_work(struct work_struct *work)
-{
+{//called after interrupt
 	struct max77803_charger_data *charger = container_of(work,
 				struct max77803_charger_data, chgin_work);
 	u8 chgin_dtls, chg_dtls, chg_cnfg_00, reg_data;
@@ -1643,6 +1653,76 @@ static int sec_charger_parse_dt(struct max77803_charger_data *charger)
 }
 #endif
 
+static struct max77803_charger_data *g_charger;
+static int input_proc_write(struct file *sp_file,const char __user *buf, size_t size, loff_t *offset)
+{
+	int i;
+	int len = size;
+	char msg[16];
+	if(copy_from_user(msg,buf,len) == 0)
+	{
+		sscanf(buf, "%d", &i);
+		g_charger->charging_current_max = min(i, 2100);
+		max77803_set_input_current(g_charger, g_charger->charging_current_max);
+		max77803_set_topoff_current(g_charger, 200, 2400);
+	}
+	return len;
+}
+
+static int charge_proc_write(struct file *sp_file,const char __user *buf, size_t size, loff_t *offset)
+{
+	int i;
+	int len = size;
+	char msg[16];
+	if(copy_from_user(msg,buf,len) == 0)
+	{
+		sscanf(buf, "%d", &i);
+		g_charger->charging_current = min(i, 2100);
+		max77803_set_charge_current(g_charger, g_charger->charging_current);
+	}
+	return len;
+}
+
+static int charge_proc_read(struct seq_file *m, void *v)
+{
+  	char str[5];
+	int iLen = snprintf(str, sizeof(str), "%d", 
+			max77803_get_charge_current(g_charger));
+        seq_printf(m, "%s\n", str);
+        return 0;
+}
+
+static int input_proc_read(struct seq_file *m, void *v)
+{
+  	char str[5];
+	int iLen = snprintf(str, sizeof(str), "%d", 
+			max77803_get_input_current(g_charger));
+        seq_printf(m, "%s\n", str);
+        return 0;
+}
+
+static int input_open_callback(struct inode *inode, struct file *file){
+        return single_open(file, input_proc_read, NULL);
+}
+
+static int charge_open_callback(struct inode *inode, struct file *file){
+        return single_open(file, charge_proc_read, NULL);
+}
+
+static const struct file_operations charge_proc_fops = {
+        .owner = THIS_MODULE,
+        .read = seq_read,
+        .open = charge_open_callback,
+        .write = charge_proc_write,
+};
+
+static const struct file_operations input_proc_fops = {
+        .owner = THIS_MODULE,
+        .read = seq_read,
+        .open = input_open_callback,
+        .write = input_proc_write,
+};
+
 static __devinit int max77803_charger_probe(struct platform_device *pdev)
 {
 	struct max77803_dev *iodev = dev_get_drvdata(pdev->dev.parent);
@@ -1653,7 +1733,7 @@ static __devinit int max77803_charger_probe(struct platform_device *pdev)
 
 	pr_info("%s: MAX77803 Charger driver probe\n", __func__);
 
-	charger = kzalloc(sizeof(*charger), GFP_KERNEL);
+	g_charger = charger = kzalloc(sizeof(*charger), GFP_KERNEL);
 	if (!charger)
 		return -ENOMEM;
 
@@ -1667,6 +1747,9 @@ static __devinit int max77803_charger_probe(struct platform_device *pdev)
 	charger->pdata = pdata->charger_data;
 	charger->aicl_on = false;
 	charger->siop_level = 100;
+	charger->charging_current = 200;
+	charger->charging_current_max = 300;
+	
 
 #ifdef CONFIG_OF
 	if (sec_charger_parse_dt(charger))
@@ -1795,6 +1878,9 @@ static __devinit int max77803_charger_probe(struct platform_device *pdev)
 	if (ret < 0)
 		pr_err("%s: fail to request bypass IRQ: %d: %d\n",
 				__func__, charger->irq_bypass, ret);
+	/* NULL means root-dir, 438 means permissions rw-rw-rw (0666) */
+	proc_create("charger_charge_ma", 0644, NULL, &charge_proc_fops);
+	proc_create("charger_input_ma", 0644, NULL, &input_proc_fops);
 	return 0;
 err_wc_irq:
 	free_irq(charger->pdata->chg_irq, NULL);
@@ -1804,6 +1890,7 @@ err_power_supply_register:
 	destroy_workqueue(charger->wqueue);
 err_free:
 	kfree(charger);
+	g_charger = NULL;
 
 	return ret;
 
