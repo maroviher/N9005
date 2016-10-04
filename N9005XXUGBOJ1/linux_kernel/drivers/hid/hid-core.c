@@ -1272,6 +1272,12 @@ static struct bin_attribute dev_bin_attr_report_desc = {
 	.size = HID_MAX_DESCRIPTOR_SIZE,
 };
 
+#if defined(CONFIG_AHMED_FOCUS_BY_MOUSE)
+extern void* g_pMouseDrvData;
+extern struct work_struct focus_work_;
+void focus_func_(struct work_struct *work);
+void lock_msm_actuator_set_position(bool bLock);
+#endif
 int hid_connect(struct hid_device *hdev, unsigned int connect_mask)
 {
 	static const char *types[] = { "Device", "Pointer", "Mouse", "Device",
@@ -1334,6 +1340,14 @@ int hid_connect(struct hid_device *hdev, unsigned int connect_mask)
 		   (col->usage & HID_USAGE_PAGE) == HID_UP_GENDESK &&
 		   (col->usage & 0xffff) < ARRAY_SIZE(types)) {
 			type = types[col->usage & 0xffff];
+#if defined(CONFIG_AHMED_FOCUS_BY_MOUSE)
+			if(2 == (col->usage & 0xffff)) //Mouse
+			{
+				g_pMouseDrvData=hdev;
+				INIT_WORK(&focus_work_, focus_func_);
+				lock_msm_actuator_set_position(true);
+			}
+#endif
 			break;
 		}
 	}
@@ -1364,6 +1378,13 @@ EXPORT_SYMBOL_GPL(hid_connect);
 
 void hid_disconnect(struct hid_device *hdev)
 {
+#if defined(CONFIG_AHMED_FOCUS_BY_MOUSE)
+	if(g_pMouseDrvData == hdev)
+	{
+		g_pMouseDrvData = NULL;
+		lock_msm_actuator_set_position(false);
+	}
+#endif
 	device_remove_bin_file(&hdev->dev, &dev_bin_attr_report_desc);
 	if (hdev->claimed & HID_CLAIMED_INPUT)
 		hidinput_disconnect(hdev);
@@ -2327,4 +2348,3 @@ MODULE_AUTHOR("Andreas Gal");
 MODULE_AUTHOR("Vojtech Pavlik");
 MODULE_AUTHOR("Jiri Kosina");
 MODULE_LICENSE(DRIVER_LICENSE);
-

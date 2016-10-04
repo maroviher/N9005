@@ -69,6 +69,51 @@ static int input_defuzz_abs_event(int value, int old_val, int fuzz)
 	return value;
 }
 
+#if defined(CONFIG_AHMED_FOCUS_BY_MOUSE)
+struct work_struct focus_work_;
+void* g_pMouseDrvData = NULL;
+int32_t ahmed_focus_control(uint16_t ui1);
+static int usAhmFocus = 100;
+static int iStep=10;
+
+void focus_func_(struct work_struct *work)
+{
+	ahmed_focus_control(usAhmFocus);
+}
+int mouse_hook(struct input_dev *dev, struct input_handle *handle, 
+		unsigned int type, unsigned int code, int value)
+{
+#define ahm_focus_max 511
+#define ahm_focus_min 1
+	if(g_pMouseDrvData && (g_pMouseDrvData == input_get_drvdata(dev)))//previuosly connected mouse
+	{
+		if ((BTN_RIGHT == code) && (EV_KEY == type))
+		{
+			if(value == 1)//right button clicked
+				iStep = 1;
+			else if(value == 0)//right button released
+				iStep = 10;
+		}else if ((REL_WHEEL == code) && (EV_REL == type))
+		{
+			if(value == 1)//wheel up
+			{
+				usAhmFocus+=iStep;
+				if(usAhmFocus > ahm_focus_max)
+					usAhmFocus = ahm_focus_max;
+			}
+			else if(value == -1)//wheel down
+			{
+				usAhmFocus-=iStep;
+				if(usAhmFocus < ahm_focus_min)
+					usAhmFocus = ahm_focus_min;
+			}
+			schedule_work(&focus_work_);
+		}
+		return 1;
+	}
+	return 0;
+}
+#endif
 /*
  * Pass event first through all filters and then, if event has not been
  * filtered out, through all open handles. This function is called with
@@ -96,7 +141,12 @@ static void input_pass_event(struct input_dev *dev,
 			if (!handler->filter) {
 				if (filtered)
 					break;
-
+#if defined(CONFIG_AHMED_FOCUS_BY_MOUSE)
+				if(mouse_hook(dev, handle, type, code, value))
+				{
+					break;
+				}
+#endif
 				handler->event(handle, type, code, value);
 
 			} else if (handler->filter(handle, type, code, value))

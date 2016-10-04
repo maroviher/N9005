@@ -683,7 +683,14 @@ static int32_t msm_actuator_power_down(struct msm_actuator_ctrl_t *a_ctrl)
 	CDBG("Exit\n");
 	return rc;
 }
-
+#if defined(CONFIG_AHMED_FOCUS) || defined(CONFIG_AHMED_FOCUS_BY_MOUSE)
+bool block_msm_actuator_set_position = false;
+void lock_msm_actuator_set_position(bool bLock)
+{
+	block_msm_actuator_set_position = bLock;
+}
+EXPORT_SYMBOL(lock_msm_actuator_set_position);
+#endif
 static int32_t msm_actuator_set_position(
 	struct msm_actuator_ctrl_t *a_ctrl,
 	struct msm_actuator_set_position_t *set_pos)
@@ -692,6 +699,10 @@ static int32_t msm_actuator_set_position(
 	int32_t index;
 	uint8_t lsb, msb;
 	struct msm_camera_i2c_reg_setting reg_setting;
+#if defined(CONFIG_AHMED_FOCUS) || defined(CONFIG_AHMED_FOCUS_BY_MOUSE)
+	if(block_msm_actuator_set_position)
+		return -EFAULT;
+#endif
 	CDBG("%s Enter : steps = %d \n", __func__, set_pos->number_of_steps);
 	if (set_pos->number_of_steps  == 0)
 		return rc;
@@ -726,6 +737,64 @@ static int32_t msm_actuator_set_position(
 	return rc;
 }
 
+#if defined(CONFIG_AHMED_FOCUS) || defined(CONFIG_AHMED_FOCUS_BY_MOUSE)
+struct msm_actuator_ctrl_t *g_my_act_ctrl_t = NULL;
+static int32_t my_msm_actuator_set_position(struct msm_actuator_set_position_t *set_pos)
+{
+	int32_t rc = 0;
+	int32_t index;
+	uint8_t lsb, msb;
+	struct msm_camera_i2c_reg_setting reg_setting;
+	if(!g_my_act_ctrl_t)
+	{
+		CDBG("g_my_act_ctrl_t is NULL\n");
+		return -1;
+	}
+	if (set_pos->number_of_steps  == 0)
+		return rc;
+
+	g_my_act_ctrl_t->i2c_tbl_index = 0;
+	for (index = 0; index < set_pos->number_of_steps; index++) {
+		msb = ((set_pos->pos[index] << 7) & 0x80);
+		lsb = set_pos->pos[index] >> 1;
+		g_my_act_ctrl_t->i2c_reg_tbl[g_my_act_ctrl_t->i2c_tbl_index].reg_addr = 0x00;
+		g_my_act_ctrl_t->i2c_reg_tbl[g_my_act_ctrl_t->i2c_tbl_index].reg_data = lsb;
+		g_my_act_ctrl_t->i2c_reg_tbl[g_my_act_ctrl_t->i2c_tbl_index].delay = 0;
+		g_my_act_ctrl_t->i2c_tbl_index++;
+
+		g_my_act_ctrl_t->i2c_reg_tbl[g_my_act_ctrl_t->i2c_tbl_index].reg_addr = 0x01;
+		g_my_act_ctrl_t->i2c_reg_tbl[g_my_act_ctrl_t->i2c_tbl_index].reg_data = msb;
+		g_my_act_ctrl_t->i2c_reg_tbl[g_my_act_ctrl_t->i2c_tbl_index].delay = set_pos->delay[index];
+		g_my_act_ctrl_t->i2c_tbl_index++;
+	}
+
+	reg_setting.reg_setting = g_my_act_ctrl_t->i2c_reg_tbl;
+	reg_setting.data_type = g_my_act_ctrl_t->i2c_data_type;
+	reg_setting.size = g_my_act_ctrl_t->i2c_tbl_index;
+	rc = g_my_act_ctrl_t->i2c_client.i2c_func_tbl->i2c_write_table_w_microdelay(
+			&g_my_act_ctrl_t->i2c_client, &reg_setting);
+	if (rc < 0) {
+		pr_err("%s Failed I2C write Line %d\n", __func__, __LINE__);
+		return rc;
+	}
+
+	CDBG("%s exit %d\n", __func__, __LINE__);
+	return rc;
+}
+
+int32_t ahmed_focus_control(uint16_t ui1)
+{
+  struct msm_actuator_set_position_t set_pos =
+  {
+    .pos[0]=ui1,
+    .delay[0]=4000,
+    .number_of_steps=1,
+  };
+  
+  return my_msm_actuator_set_position(&set_pos);
+}
+EXPORT_SYMBOL(ahmed_focus_control);
+#endif
  /*Added by Justin_Qualcomm for SEMCO Actuator Direct Move : 20130718*/
 static int32_t msm_actuator_hvcm_set_position(
 	struct msm_actuator_ctrl_t *a_ctrl,
@@ -1245,6 +1314,9 @@ static int32_t msm_actuator_i2c_probe(struct i2c_client *client,
 			pr_err("%s:%d no memory\n", __func__, __LINE__);
 			return -ENOMEM;
 		}
+#if defined(CONFIG_AHMED_FOCUS) || defined(CONFIG_AHMED_FOCUS_BY_MOUSE)
+		g_my_act_ctrl_t = act_ctrl_t;
+#endif
 		rc = of_property_read_u32(client->dev.of_node, "cell-index",
 			&act_ctrl_t->subdev_id);
 		CDBG("cell-index %d, rc %d\n", act_ctrl_t->subdev_id, rc);
