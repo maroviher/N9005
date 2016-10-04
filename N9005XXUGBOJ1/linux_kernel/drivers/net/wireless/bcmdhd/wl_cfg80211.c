@@ -6586,6 +6586,7 @@ static s32 wl_cfg80211_bcn_set_params(
 	struct net_device *dev,
 	u32 dev_role, s32 bssidx)
 {
+	s32 my_beacon = 1000;
 	struct bcm_cfg80211 *cfg = g_bcm_cfg;
 	s32 err = BCME_OK;
 
@@ -6594,7 +6595,7 @@ static s32 wl_cfg80211_bcn_set_params(
 
 	if (info->beacon_interval) {
 		if ((err = wldev_ioctl(dev, WLC_SET_BCNPRD,
-			&info->beacon_interval, sizeof(s32), true)) < 0) {
+			&my_beacon, sizeof(s32), true)) < 0) {
 			WL_ERR(("Beacon Interval Set Error, %d\n", err));
 			return err;
 		}
