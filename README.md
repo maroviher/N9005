@@ -1,6 +1,10 @@
 ### Ahmed kernel for N9005 LTE (Note 3 Quallcomm SoC) based on Samsung stock N9005XXUGBOJ1(Lollipop)
 		Changes:
 		* SELinux possible set to permissive
+		* WiFi Thethering: beacon interval increased from 100ms to 1000ms (saves battery life, less emission)
+		* Charge control: set input/charge current in mA. USE AT YOUR OWN RISK, YOU CAN DAMAGE YOUR PHONE/BATTERY
+		* Control a camera focus by a mouse. Use macro focus using Skype and any other programm. Just plug in a mouse using OTG and use a wheel.
+		* Change a brightness of your LED light. (Use an APP).
 		
 		Removed (nobody needs it in daily use):
 		* CONFIG_DEBUG_USER (annoying illegal instruction messages in dmesg)
