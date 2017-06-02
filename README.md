@@ -41,6 +41,7 @@
 				
 ### How to compile:
 				#if you want original samsung configs than replace ahmed_msm8974_sec_defconfig through msm8974_sec_defconfig in build_kernel.sh
+				sudo apt-get install lzop
 				git clone https://github.com/maroviher/N9005
 				cd N9005/N9005XXUGBOJ1/linux_kernel
 				./build_kernel.sh
